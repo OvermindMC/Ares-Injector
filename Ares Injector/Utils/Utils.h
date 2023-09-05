@@ -1,7 +1,11 @@
 #pragma once
 
+#include <ostream>
+#include <fstream>
+#include <string>
 #include <iostream>
 #include <Windows.h>
+#include <filesystem>
 
 class Utils {
 public:
@@ -10,4 +14,6 @@ public:
 public:
 	static auto getRoamPath(void) -> const char*;
 	static auto getAresPath(void) -> const char*;
+public:
+	static auto storeToken(const char*) -> void;
 };
