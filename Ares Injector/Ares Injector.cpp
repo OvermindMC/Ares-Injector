@@ -8,7 +8,4 @@ int main(int argc, char* argv[]) {
         Utils::handleCustomUri(argv[1]);
     };
 
-    std::cout << Utils::getAresPath();
-
-    Sleep(15000);
 };
