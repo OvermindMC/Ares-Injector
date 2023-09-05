@@ -62,7 +62,7 @@ auto Utils::handleCustomUri(const char* arg) -> void {
         if (argument.ends_with("/"))
             argument.erase(argument.end()-1);
 
-        std::cout << argument;
+        Utils::storeToken(argument.c_str());
 
     };
 
@@ -100,5 +100,33 @@ auto Utils::getAresPath(void) -> const char* {
 
     delete[] roamPath;
     return finalPath;
+
+};
+
+auto Utils::storeToken(const char* token) -> void {
+
+    auto path = std::string(Utils::getAresPath());
+    auto file = path + "\\Token.txt";
+
+    if (!std::filesystem::exists(path))
+        std::filesystem::create_directories(path);
+
+    try {
+        
+        std::ofstream ofStream(file, std::ios::out | std::ios::trunc);
+
+        if (!ofStream.is_open()) {
+            
+            std::cout << "Error opening Token file for writing." << std::endl;
+            return;
+
+        };
+
+        ofStream << token;
+        ofStream.close();
+
+    } catch (const std::exception& e) {
+        std::cout << "Error writing Token to file: " << e.what() << std::endl;
+    };
 
 };
