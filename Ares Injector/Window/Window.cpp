@@ -146,6 +146,29 @@ LRESULT CALLBACK ImGuiContainer::CustomWndProc(HWND hwnd, UINT msg, WPARAM wPara
     return ::DefWindowProc(hwnd, msg, wParam, lParam);
 };
 
+auto ImGuiContainer::handleResizeBuffers(void) -> void {
+
+    if (this->g_ResizeWidth != 0 && this->g_ResizeHeight != 0) {
+        this->CleanupRenderTarget();
+        this->g_pSwapChain->ResizeBuffers(0, this->g_ResizeWidth, this->g_ResizeHeight, DXGI_FORMAT_UNKNOWN, 0);
+        this->g_ResizeWidth = this->g_ResizeHeight = 0;
+        this->CreateRenderTarget();
+    };
+
+};
+
+auto ImGuiContainer::finalizeFrame(void) -> void {
+
+    this->g_pd3dDeviceContext->OMSetRenderTargets(1, &this->g_mainRenderTargetView, nullptr);
+
+    const float clear_color_with_alpha[4] = { 0.f, 0.f, 0.f, 1.f };
+    this->g_pd3dDeviceContext->ClearRenderTargetView(this->g_mainRenderTargetView, clear_color_with_alpha);
+
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    this->g_pSwapChain->Present(1, 0);
+
+};
+
 auto ImGuiContainer::setAresStyles(void) -> void {
 
     auto& colors = ImGui::GetStyle().Colors;
