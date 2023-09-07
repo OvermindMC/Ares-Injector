@@ -59,6 +59,8 @@ auto Utils::handleCustomUri(const char* arg) -> void {
 
     if (argument.starts_with("ares://token=")) {
 
+        argument = argument.substr(13);
+
         if (argument.ends_with("/"))
             argument.erase(argument.end()-1);
 
