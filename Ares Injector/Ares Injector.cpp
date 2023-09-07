@@ -28,12 +28,7 @@ int main(int argc, char* argv[]) {
         if (done)
             break;
 
-        if (container->g_ResizeWidth != 0 && container->g_ResizeHeight != 0) {
-            container->CleanupRenderTarget();
-            container->g_pSwapChain->ResizeBuffers(0, container->g_ResizeWidth, container->g_ResizeHeight, DXGI_FORMAT_UNKNOWN, 0);
-            container->g_ResizeWidth = container->g_ResizeHeight = 0;
-            container->CreateRenderTarget();
-        };
+        container->handleResizeBuffers();
 
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
@@ -71,13 +66,7 @@ int main(int argc, char* argv[]) {
         ImGui::EndFrame();
         ImGui::Render();
         
-        container->g_pd3dDeviceContext->OMSetRenderTargets(1, &container->g_mainRenderTargetView, nullptr);
-        
-        const float clear_color_with_alpha[4] = { 0.f, 0.f, 0.f, 1.f };
-        container->g_pd3dDeviceContext->ClearRenderTargetView(container->g_mainRenderTargetView, clear_color_with_alpha);
-        
-        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-        container->g_pSwapChain->Present(1, 0);
+        container->finalizeFrame();
 
     };
 
