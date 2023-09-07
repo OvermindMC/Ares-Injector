@@ -4,7 +4,7 @@ auto ImGuiContainer::init(void) -> void {
 
     this->windowClass.cbSize = sizeof(WNDCLASSEX);
     this->windowClass.style = CS_HREDRAW | CS_VREDRAW;
-    this->windowClass.lpfnWndProc = DefWindowProc;
+    this->windowClass.lpfnWndProc = ImGuiContainer::CustomWndProc;
     this->windowClass.cbClsExtra = 0;
     this->windowClass.cbWndExtra = 0;
     this->windowClass.hInstance = GetModuleHandle(NULL);
@@ -46,7 +46,7 @@ auto ImGuiContainer::uninitialize(void) -> void {
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
 
-    CleanupDeviceD3D();
+    this->CleanupDeviceD3D();
     ::DestroyWindow(this->window);
     ::UnregisterClassW(this->windowClass.lpszClassName, this->windowClass.hInstance);
 
@@ -79,6 +79,9 @@ auto ImGuiContainer::CreateDeviceD3D(HWND hwnd) -> bool {
     if (res != S_OK)
         return false;
 
+    ::SetWindowLongPtr(this->window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+    ::SetWindowLongPtr(this->window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&ImGuiContainer::CustomWndProc));
+
     this->CreateRenderTarget();
     return true;
 
@@ -87,17 +90,17 @@ auto ImGuiContainer::CreateDeviceD3D(HWND hwnd) -> bool {
 auto ImGuiContainer::CleanupDeviceD3D(void) -> void {
 
     this->CleanupRenderTarget();
-    if (g_pSwapChain) { g_pSwapChain->Release(); g_pSwapChain = nullptr; }
-    if (g_pd3dDeviceContext) { g_pd3dDeviceContext->Release(); g_pd3dDeviceContext = nullptr; }
-    if (g_pd3dDevice) { g_pd3dDevice->Release(); g_pd3dDevice = nullptr; }
+    if (this->g_pSwapChain) { this->g_pSwapChain->Release(); this->g_pSwapChain = nullptr; }
+    if (this->g_pd3dDeviceContext) { this->g_pd3dDeviceContext->Release(); this->g_pd3dDeviceContext = nullptr; }
+    if (this->g_pd3dDevice) { this->g_pd3dDevice->Release(); this->g_pd3dDevice = nullptr; }
 
 };
 
 auto ImGuiContainer::CreateRenderTarget(void) -> void {
 
     ID3D11Texture2D* pBackBuffer;
-    g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
-    g_pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &this->g_mainRenderTargetView);
+    this->g_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+    this->g_pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &this->g_mainRenderTargetView);
     pBackBuffer->Release();
 
 };
@@ -106,4 +109,40 @@ auto ImGuiContainer::CleanupRenderTarget(void) -> void {
 
     if (g_mainRenderTargetView) { g_mainRenderTargetView->Release(); g_mainRenderTargetView = nullptr; }
 
+};
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+LRESULT CALLBACK ImGuiContainer::CustomWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    ImGuiContainer* container = reinterpret_cast<ImGuiContainer*>(::GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
+    if (container != nullptr && container->g_pd3dDevice != nullptr)
+    {
+        if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam))
+            return true;
+
+        // Handle other window messages as needed
+        switch (msg)
+        {
+        case WM_SIZE:
+            // Handle window resizing here (e.g., recreating DirectX resources)
+            // You may need to call container->CreateRenderTarget() or handle other resizing logic
+            break;
+        case WM_SYSCOMMAND:
+            // Handle system commands (e.g., prevent screen saver)
+            if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+                return 0;
+            break;
+        case WM_CLOSE:
+            // Handle window close event
+            ::PostQuitMessage(0);
+            break;
+        default:
+            // Call the default window procedure for unhandled messages
+            return ::DefWindowProc(hwnd, msg, wParam, lParam);
+        }
+    }
+
+    return ::DefWindowProc(hwnd, msg, wParam, lParam);
 };
