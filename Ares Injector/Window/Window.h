@@ -29,4 +29,6 @@ public:
 	auto CleanupDeviceD3D(void) -> void;
 	auto CreateRenderTarget(void) -> void;
 	auto CleanupRenderTarget(void) -> void;
+public:
+	static LRESULT CALLBACK CustomWndProc(HWND, UINT, WPARAM, LPARAM);
 };
