@@ -16,4 +16,5 @@ public:
 	static auto getAresPath(void) -> const char*;
 public:
 	static auto storeToken(const char*) -> void;
+	static auto getToken(void) -> std::string;
 };
