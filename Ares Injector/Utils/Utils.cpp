@@ -132,3 +132,29 @@ auto Utils::storeToken(const char* token) -> void {
     };
 
 };
+
+auto Utils::getToken(void) -> std::string {
+
+    auto path = std::string(Utils::getAresPath());
+    auto file = path + "\\Token.txt";
+
+    try {
+        std::ifstream ifStream(file);
+
+        if (!ifStream.is_open())
+            return "";
+
+        std::string token;
+        ifStream >> token;
+
+        ifStream.close();
+        return token;
+
+    }
+    catch (const std::exception& e) {
+        return "";
+    };
+
+    return "";
+
+};
