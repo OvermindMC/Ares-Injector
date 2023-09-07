@@ -8,6 +8,7 @@
 #pragma comment(lib, "d3d11.lib")
 
 #include "../ImGui/imgui.h"
+#include "../ImGui/DroidSans.hpp"
 #include "../ImGui/backends/imgui_impl_dx11.h"
 #include "../ImGui/backends/imgui_impl_win32.h"
 
@@ -29,6 +30,8 @@ public:
 	auto CleanupDeviceD3D(void) -> void;
 	auto CreateRenderTarget(void) -> void;
 	auto CleanupRenderTarget(void) -> void;
+public:
+	auto setAresStyles(void) -> void;
 public:
 	static LRESULT CALLBACK CustomWndProc(HWND, UINT, WPARAM, LPARAM);
 };
