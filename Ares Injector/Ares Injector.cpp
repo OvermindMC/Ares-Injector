@@ -42,8 +42,8 @@ int main(int argc, char* argv[]) {
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::SetNextWindowSize(ImVec2(600.f, 600.f));
-        ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
+        //ImGui::SetNextWindowSize(ImVec2(600.f, 600.f));
+        //ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
         if (ImGui::Begin("Hello, World!")) {
 
             ImGui::Text("Count: %d", count);
@@ -52,14 +52,21 @@ int main(int argc, char* argv[]) {
 
         };
 
+        ImGui::EndFrame();
         ImGui::Render();
+        
         container->g_pd3dDeviceContext->OMSetRenderTargets(1, &container->g_mainRenderTargetView, nullptr);
+        
+        const float clear_color_with_alpha[4] = { 0.f, 0.f, 0.f, 1.f };
+        container->g_pd3dDeviceContext->ClearRenderTargetView(container->g_mainRenderTargetView, clear_color_with_alpha);
+        
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-        container->g_pSwapChain->Present(1, 0);
+        container->g_pSwapChain->Present(0, 0);
 
     };
 
     container->uninitialize();
+    delete container;
     return 1;
 
 };
