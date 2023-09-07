@@ -122,26 +122,23 @@ LRESULT CALLBACK ImGuiContainer::CustomWndProc(HWND hwnd, UINT msg, WPARAM wPara
         if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam))
             return true;
 
-        // Handle other window messages as needed
         switch (msg)
         {
         case WM_SIZE:
-            // Handle window resizing here (e.g., recreating DirectX resources)
-            // You may need to call container->CreateRenderTarget() or handle other resizing logic
-            break;
+            if (wParam == SIZE_MINIMIZED)
+                return 0;
+            container->g_ResizeWidth = (UINT)LOWORD(lParam); // Queue resize
+            container->g_ResizeHeight = (UINT)HIWORD(lParam);
+            return 0;
         case WM_SYSCOMMAND:
-            // Handle system commands (e.g., prevent screen saver)
             if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
                 return 0;
             break;
-        case WM_CLOSE:
-            // Handle window close event
+        case WM_DESTROY:
             ::PostQuitMessage(0);
-            break;
-        default:
-            // Call the default window procedure for unhandled messages
-            return ::DefWindowProc(hwnd, msg, wParam, lParam);
+            return 0;
         }
+        return ::DefWindowProcW(hwnd, msg, wParam, lParam);
     }
 
     return ::DefWindowProc(hwnd, msg, wParam, lParam);
