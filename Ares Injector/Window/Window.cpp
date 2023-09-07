@@ -38,6 +38,9 @@ auto ImGuiContainer::init(void) -> void {
     ImGui_ImplWin32_Init(this->window);
     ImGui_ImplDX11_Init(this->g_pd3dDevice, this->g_pd3dDeviceContext);
 
+    ::SetWindowLongPtr(this->window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+    ::SetWindowLongPtr(this->window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&ImGuiContainer::CustomWndProc));
+
 };
 
 auto ImGuiContainer::uninitialize(void) -> void {
@@ -78,9 +81,6 @@ auto ImGuiContainer::CreateDeviceD3D(HWND hwnd) -> bool {
         res = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_WARP, nullptr, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &this->g_pSwapChain, &this->g_pd3dDevice, &featureLevel, &this->g_pd3dDeviceContext);
     if (res != S_OK)
         return false;
-
-    ::SetWindowLongPtr(this->window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-    ::SetWindowLongPtr(this->window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&ImGuiContainer::CustomWndProc));
 
     this->CreateRenderTarget();
     return true;
