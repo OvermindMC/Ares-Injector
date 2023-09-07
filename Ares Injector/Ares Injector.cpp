@@ -11,15 +11,46 @@ int main(int argc, char* argv[]) {
 
     auto container = new ImGuiContainer();
     container->init();
+    
+    bool done = false;
+    int count = 0;
 
-    while (true) {
+    while (!done) {
+
+        count++;
+
+        MSG msg;
+        while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
+        {
+            ::TranslateMessage(&msg);
+            ::DispatchMessage(&msg);
+            if (msg.message == WM_QUIT)
+                done = true;
+        };
+
+        if (done)
+            break;
+
+        if (container->g_ResizeWidth != 0 && container->g_ResizeHeight != 0) {
+            container->CleanupRenderTarget();
+            container->g_pSwapChain->ResizeBuffers(0, container->g_ResizeWidth, container->g_ResizeHeight, DXGI_FORMAT_UNKNOWN, 0);
+            container->g_ResizeWidth = container->g_ResizeHeight = 0;
+            container->CreateRenderTarget();
+        };
 
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Hello, World!");
-        ImGui::End();
+        ImGui::SetNextWindowSize(ImVec2(600.f, 600.f));
+        ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
+        if (ImGui::Begin("Hello, World!")) {
+
+            ImGui::Text("Count: %d", count);
+
+            ImGui::End();
+
+        };
 
         ImGui::Render();
         container->g_pd3dDeviceContext->OMSetRenderTargets(1, &container->g_mainRenderTargetView, nullptr);
