@@ -9,6 +9,11 @@ int main(int argc, char* argv[]) {
         Utils::handleCustomUri(argv[1]);
     };
 
+    auto token = Utils::getToken();
+    
+    if (token.length() <= 0)
+        return 1;
+
     auto container = new ImGuiContainer();
     container->init();
     
@@ -56,8 +61,6 @@ int main(int argc, char* argv[]) {
                 ImGui::EndMenuBar();
 
             };
-            
-            //
             
             ImGui::End();
 
