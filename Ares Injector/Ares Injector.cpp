@@ -13,11 +13,8 @@ int main(int argc, char* argv[]) {
     container->init();
     
     bool done = false;
-    int count = 0;
 
     while (!done) {
-
-        count++;
 
         MSG msg;
         while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
@@ -42,12 +39,31 @@ int main(int argc, char* argv[]) {
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        //ImGui::SetNextWindowSize(ImVec2(600.f, 600.f));
-        //ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
-        if (ImGui::Begin("Hello, World!")) {
+        ImGuiIO& io = ImGui::GetIO();
+        auto windowSize = io.DisplaySize;
 
-            ImGui::Text("Count: %d", count);
+        ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
+        ImGui::SetNextWindowSize(windowSize);
 
+        container->setAresStyles();
+
+        if (ImGui::Begin("Home", NULL, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize)) {
+            
+            if (ImGui::BeginMenuBar()) {
+                
+                if (ImGui::BeginMenu("Main")) {
+                    
+                    ImGui::MenuItem("Exit", NULL, &done);
+                    ImGui::EndMenu();
+
+                };
+
+                ImGui::EndMenuBar();
+
+            };
+            
+            //
+            
             ImGui::End();
 
         };
@@ -61,7 +77,7 @@ int main(int argc, char* argv[]) {
         container->g_pd3dDeviceContext->ClearRenderTargetView(container->g_mainRenderTargetView, clear_color_with_alpha);
         
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-        container->g_pSwapChain->Present(0, 0);
+        container->g_pSwapChain->Present(1, 0);
 
     };
 
