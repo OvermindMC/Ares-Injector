@@ -31,6 +31,9 @@ public:
 	auto CreateRenderTarget(void) -> void;
 	auto CleanupRenderTarget(void) -> void;
 public:
+	auto handleResizeBuffers(void) -> void;
+	auto finalizeFrame(void) -> void;
+public:
 	auto setAresStyles(void) -> void;
 public:
 	static LRESULT CALLBACK CustomWndProc(HWND, UINT, WPARAM, LPARAM);
