@@ -9,11 +9,6 @@ int main(int argc, char* argv[]) {
         Utils::handleCustomUri(argv[1]);
     };
 
-    auto token = Utils::getToken();
-    
-    if (token.length() <= 0)
-        return 1;
-
     auto socket = new SocketClient("139.162.240.124", 8000);
     auto user = socket->getUser();
 
