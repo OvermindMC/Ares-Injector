@@ -67,6 +67,16 @@ int main(int argc, char* argv[]) {
                 ImGui::EndMenuBar();
 
             };
+
+            if (!Utils::isAresInjected()) {
+                
+                ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Inject").x) * 0.5f);
+
+                if (ImGui::Button("Inject")) {
+                    Utils::injectLatest();
+                };
+
+            };
             
             ImGui::End();
 
