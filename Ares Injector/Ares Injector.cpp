@@ -1,4 +1,4 @@
-#include "Utils/Utils.h"
+#include "Utils/SocketClient.h"
 #include "Window/Window.h"
 
 int main(int argc, char* argv[]) {
@@ -13,6 +13,17 @@ int main(int argc, char* argv[]) {
     
     if (token.length() <= 0)
         return 1;
+
+    auto socket = new SocketClient("139.162.240.124", 8000);
+    auto user = socket->getUser();
+
+    if (user.size() <= 0) {
+
+        std::cout << "Unable to login, check the website!";
+        Sleep(5000);
+        return 1;
+
+    };
 
     auto container = new ImGuiContainer();
     container->init();
