@@ -1,11 +1,19 @@
 #pragma once
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
+#include <WinSock2.h>
+#pragma comment(lib, "ws2_32.lib")
+
+#include <filesystem>
+#include <Windows.h>
+#include <iostream>
 #include <ostream>
 #include <fstream>
 #include <string>
-#include <iostream>
-#include <Windows.h>
-#include <filesystem>
+
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 class Utils {
 public:
