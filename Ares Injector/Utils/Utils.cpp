@@ -158,3 +158,124 @@ auto Utils::getToken(void) -> std::string {
     return "";
 
 };
+
+auto Utils::isAresInjected(void) -> bool {
+
+    auto wstrLower = [] (const std::wstring& str) -> const std::wstring& {
+
+        std::wstring lower = str.c_str();
+        
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+        return lower;
+
+    };
+
+    auto multiByteToWide = [](const std::string& narrowStr) -> std::wstring {
+        int wideStrLen = MultiByteToWideChar(CP_UTF8, 0, narrowStr.c_str(), -1, NULL, 0);
+        if (wideStrLen == 0)
+            return L"";
+
+        std::wstring wideStr(wideStrLen, L'\0');
+        MultiByteToWideChar(CP_UTF8, 0, narrowStr.c_str(), -1, &wideStr[0], wideStrLen);
+
+        return wideStr;
+    };
+
+    auto procName = "Minecraft.Windows.exe";
+
+    DWORD processId = 0;
+    PROCESSENTRY32 pe32 = { sizeof(PROCESSENTRY32) };
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+    if (hSnapshot != INVALID_HANDLE_VALUE) {
+
+        if (Process32First(hSnapshot, &pe32)) {
+            do {
+                if(wcscmp(pe32.szExeFile, multiByteToWide(procName).c_str()) == 0) {
+                    processId = pe32.th32ProcessID;
+                    break;
+                }
+            } while (Process32Next(hSnapshot, &pe32));
+        };
+        
+        CloseHandle(hSnapshot);
+
+    };
+
+    if (processId == 0)
+        return false;
+
+    HANDLE hModuleSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, processId);
+    if (hModuleSnapshot == INVALID_HANDLE_VALUE)
+        return false;
+
+    MODULEENTRY32W me32 = { sizeof(MODULEENTRY32W) };
+    auto result = false;
+    if (Module32FirstW(hModuleSnapshot, &me32)) {
+        do {
+            auto moduleName = std::wstring(me32.szModule);
+            if (moduleName.find(L"Ares") != std::wstring::npos) {
+                result = true;
+                break;
+            }
+        } while (Module32NextW(hModuleSnapshot, &me32));
+    };
+
+    CloseHandle(hModuleSnapshot);
+    return result;
+
+};
+
+auto Utils::injectLatest(void) -> void {
+    
+    std::wstring url = L"https://github.com/OvermindMC/Ares-Releases/releases/latest/download/Ares.dll";
+    std::string path = Utils::getAresPath();
+    std::wstring file = std::wstring(path.begin(), path.end()) + L"\\Ares.dll";
+    const wchar_t* dllPath = file.c_str();
+
+    HRESULT downloadResult = URLDownloadToFileW(NULL, url.c_str(), file.c_str(), 0, NULL);
+    if (downloadResult != S_OK) {
+        std::wcout << L"Failed to fetch latest!" << std::endl;
+        return;
+    };
+
+    const wchar_t* procName = L"Minecraft.Windows.exe";
+
+    DWORD processId = 0;
+    PROCESSENTRY32 pe32 = { sizeof(PROCESSENTRY32) };
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+    if (hSnapshot != INVALID_HANDLE_VALUE) {
+        if (Process32First(hSnapshot, &pe32)) {
+            do {
+                if (wcscmp(pe32.szExeFile, procName) == 0) {
+                    processId = pe32.th32ProcessID;
+                    break;
+                }
+            } while (Process32Next(hSnapshot, &pe32));
+        }
+
+        CloseHandle(hSnapshot);
+    }
+
+    if (processId == 0) {
+        std::wcout << L"Minecraft needs to be open!" << std::endl;
+        return;
+    }
+
+    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
+
+    if (hProcess) {
+        LPVOID pRemoteBuf = VirtualAllocEx(hProcess, NULL, (wcslen(dllPath) + 1) * sizeof(wchar_t), MEM_COMMIT, PAGE_READWRITE);
+        WriteProcessMemory(hProcess, pRemoteBuf, dllPath, (wcslen(dllPath) + 1) * sizeof(wchar_t), NULL);
+
+        // Load the DLL in the target process
+        HANDLE hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)LoadLibraryW, pRemoteBuf, 0, NULL);
+        WaitForSingleObject(hThread, INFINITE);
+
+        // Clean up
+        CloseHandle(hThread);
+        VirtualFreeEx(hProcess, pRemoteBuf, 0, MEM_RELEASE);
+        CloseHandle(hProcess);
+    }
+};
